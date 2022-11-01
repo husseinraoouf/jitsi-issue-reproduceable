@@ -11,6 +11,7 @@ function App() {
   const [logItems, updateLog] = useState([]);
   const [show, toggleShow] = useState(false);
   const [knockingParticipants, updateKnockingParticipants] = useState([]);
+  const [disableSelfView, setDisableSelfView] = useState(false)
 
   const printEventOutput = (payload) => {
     updateLog((items) => [...items, JSON.stringify(payload)]);
@@ -64,6 +65,12 @@ function App() {
     apiRef.current.on("titleViewChanged", printEventOutput);
     apiRef.current.on("chatUpdated", handleChatUpdates);
     apiRef.current.on("knockingParticipant", handleKnockingParticipant);
+    apiRef.current.on("toolbarButtonClicked", (payload) => {
+      updateLog((items) => [...items, `${JSON.stringify(payload)}`])
+      apiRef.current.executeCommand('localSubject', 'New Conference Local Subject');
+
+    });
+
   };
 
   const handleReadyToClose = () => {
@@ -71,7 +78,7 @@ function App() {
     alert("Ready to close...");
   };
 
-  const generateRoomName = () => "hussein-test-jitsi";
+  const generateRoomName = () => "hussein-test-jitsi-wwwwwwwewewe";
   // `JitsiMeetRoomNo${Math.random() * 100}-${Date.now()}`;
 
   const renderButtons = () => (
@@ -94,46 +101,53 @@ function App() {
             padding: "12px 46px",
             margin: "2px 2px",
           }}
+          onClick={() => {
+            apiRef.current.executeCommand('overwriteConfig',
+              {
+                disableSelfView: !disableSelfView
+              });
+            setDisableSelfView(!disableSelfView)
+          }}
+        >
+          Toggle Self View {disableSelfView.toString()}
+        </button>
+        <button
+          type="text"
+          title="Click to execute toggle raise hand command"
+          style={{
+            border: 0,
+            borderRadius: "6px",
+            fontSize: "14px",
+            background: "#f8ae1a",
+            color: "#040404",
+            padding: "12px 46px",
+            margin: "2px 2px",
+          }}
           onClick={() => apiRef.current.executeCommand("toggleRaiseHand")}
         >
           Raise hand
         </button>
-        {/* <button
-          type="text"
-          title="Click to approve/reject knocking participant"
-          style={{
-            border: 0,
-            borderRadius: "6px",
-            fontSize: "14px",
-            background: "#0056E0",
-            color: "white",
-            padding: "12px 46px",
-            margin: "2px 2px",
-          }}
-          onClick={() =>
-            resolveKnockingParticipants(({ name }) => !name.includes("test"))
-          }
-        >
-          Resolve lobby
-        </button>
         <button
           type="text"
-          title="Click to execute subject command"
+          title="Click to execute toggle raise hand command"
           style={{
             border: 0,
             borderRadius: "6px",
             fontSize: "14px",
-            background: "#df486f",
-            color: "white",
+            background: "#f8ae1a",
+            color: "#040404",
             padding: "12px 46px",
             margin: "2px 2px",
           }}
-          onClick={() =>
-            apiRef.current.executeCommand("subject", "New Subject")
-          }
+          onClick={() => {
+            const ps = apiRef.current.getParticipantsInfo();
+            const pid = ps.find(p => p.formattedDisplayName.includes("(me)")).participantId
+            console.log(pid);
+            apiRef.current.executeCommand('grantModerator', pid)
+          }}
         >
-          Change subject
-        </button> */}
+          Grant Moderator
+        </button>
         <button
           type="text"
           title="Click to create a new JitsiMeeting instance"
@@ -211,15 +225,140 @@ function App() {
             <Allotment.Pane minSize={200}>
               <Allotment vertical={true}>
                 <Allotment.Pane minSize={200}>
-                  <JaaSMeeting
-                    appId={YOUR_APP_ID}
+                  <JitsiMeeting
+                    domain = { "meet.adamdotaiqa.space" }
                     roomName={generateRoomName()}
-                    userInfo={{
-                      displayName: "YOUR_USERNAME",
-                    }}
-                    configOverwrite={{
-                      prejoinPageEnabled: false,
-                    }}
+                    jwt="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJqaXRzaSIsImlzcyI6Ijxpc3N1ZXIgand0PiIsImV4cCI6MTY2NzMxNjYxNywibmJmIjoxNjY3MzA5NDEyLCJyb29tIjoiKiIsInN1YiI6IioiLCJjb250ZXh0Ijp7InVzZXIiOnsibW9kZXJhdG9yIjoidHJ1ZSIsImlkIjoiYTFhM2RkMWQtYTRjNS00ZTdhLWFkNWYtZDg5MTA4NWY2ZjFkIiwibmFtZSI6Im15IHVzZXIgbmFtZSIsImVtYWlsIjoibXkgdXNlciBlbWFpbCIsImF2YXRhciI6Imh0dHBzOi8vdjQuYWRhbWRvdGFpcWEuc3BhY2UvaW1hZ2VzL2xvZ28ucG5nIn0sImZlYXR1cmVzIjp7ImxpdmVzdHJlYW1pbmciOiJ0cnVlIiwicmVjb3JkaW5nIjoidHJ1ZSIsIm91dGJvdW5kLWNhbGwiOiJ0cnVlIiwidHJhbnNjcmlwdGlvbiI6InRydWUifX19.2YImmvUcvEWJOhvBGXwyxu9zmMiE0skGP2puAchf1y4"
+                
+                    // userInfo={{
+                    //   displayName: "YOUR_USERNAME",
+                    // }}
+                    // // configOverwrite={{
+                    //   prejoinPageEnabled: false,
+                    //   disableSelfView: disableSelfView,
+                    //   // disableSelfViewSettings: true,
+                    //   toolbarButtons: [
+                    //     'localrecording',
+                    //     'camera',
+                    //     'chat',
+                    //     'closedcaptions',
+                    //     'desktop',
+                    //     // 'dock-iframe',
+                    //     'download',
+                    //     // 'embedmeeting',
+                    //     // 'etherpad',
+                    //     // 'feedback',
+                    //     'filmstrip',
+                    //     'fullscreen',
+                    //     'hangup',
+                    //     'help',
+                    //     'highlight',
+                    //     'invite',
+                    //     // 'linktosalesforce',
+                    //     'livestreaming',
+                    //     'microphone',
+                    //     'noisesuppression',
+                    //     'participants-pane',
+                    //     'profile',
+                    //     'raisehand',
+                    //     'recording',
+                    //     'security',
+                    //     'select-background',
+                    //     'settings',
+                    //     'shareaudio',
+                    //     'sharedvideo',
+                    //     'shortcuts',
+                    //     'stats',
+                    //     'tileview',
+                    //     'toggle-camera',
+                    //     // 'undock-iframe',
+                    //     'videoquality',
+                    //   ],
+                    //   // Options related to the remote participant menu.
+                    //   remoteVideoMenu: {
+                    //     // Whether the remote video context menu to be rendered or not.
+                    //     disabled: true,
+                    //     // If set to true the 'Kick out' button will be disabled.
+                    //     disableKick: true,
+                    //     // If set to true the 'Grant moderator' button will be disabled.
+                    //     disableGrantModerator: true,
+                    //     // If set to true the 'Send private message' button will be disabled.
+                    //     disablePrivateChat: true,
+                    //   },
+                    //   // Options related to the breakout rooms feature.
+                    //   breakoutRooms: {
+                    //     // Hides the add breakout room button. This replaces `hideAddRoomButton`.
+                    //     hideAddRoomButton: false,
+                    //     // Hides the auto assign participants button.
+                    //     hideAutoAssignButton: false,
+                    //     // Hides the join breakout room button.
+                    //     hideJoinRoomButton: false,
+                    //   },
+
+                    //   buttonsWithNotifyClick: [
+                    //     //     'camera',
+                    //     //     {
+                    //     //         key: 'chat',
+                    //     //         preventExecution: false
+                    //     //     },
+                    //     //     {
+                    //     //         key: 'closedcaptions',
+                    //     //         preventExecution: true
+                    //     //     },
+                    //     //     'desktop',
+                    //     //     'download',
+                    //     //     'embedmeeting',
+                    //     //     'etherpad',
+                    //     //     'feedback',
+                    //     //     'filmstrip',
+                    //     //     'fullscreen',
+                    //     //     'hangup',
+                    //     //     'help',
+                    //     //     {
+                    //     //         key: 'invite',
+                    //     //         preventExecution: false
+                    //     //     },
+                    //     //     'livestreaming',
+                    //     //     'microphone',
+                    //     //     'mute-everyone',
+                    //     //     'mute-video-everyone',
+                    //     //     'noisesuppression',
+                    //     //     'participants-pane',
+                    //     //     'profile',
+                    //     //     {
+                    //     //         key: 'raisehand',
+                    //     //         preventExecution: true
+                    //     //     },
+                    //     //     'recording',
+                    //     //     'security',
+                    //     //     'select-background',
+                    //     // 'settings',
+                    //     {
+                    //       key: 'settings',
+                    //       preventExecution: true
+                    //     },
+                    //     //     'shareaudio',
+                    //     //     'sharedvideo',
+                    //     //     'shortcuts',
+                    //     //     'stats',
+                    //     //     'tileview',
+                    //     //     'toggle-camera',
+                    //     //     'videoquality',
+                    //     //     // The add passcode button from the security dialog.
+                    //     //     {
+                    //     //         key: 'add-passcode',
+                    //     //         preventExecution: false
+                    //     //     },
+                    //   ],
+                    //   localRecording: {
+                    //     // Enables local recording.
+                    //     // Additionally, 'localrecording' (all lowercase) needs to be added to
+                    //     // the `toolbarButtons`-array for the Local Recording button to show up
+                    //     // on the toolbar.
+                    //     //
+                    //     enabled: true
+                    //   }
+                    // }}
                     // release = 'release-3110' // Update this with the version of interest.
                     // useStaging={true}
                     onReadyToClose={handleReadyToClose}
